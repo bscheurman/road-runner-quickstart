@@ -87,9 +87,9 @@ public final class AutonomousTfodTest extends LinearOpMode {
                                     .setTangent(Math.toRadians(180))
                                     .lineToX (42)
                                     .build(),
-                            // Tilt arm forward after driving is finished
-                            tilt.tiltForward()
-                            // Scan for horse object in position 2 (center spike mark)
+                                // Tilt arm forward after driving is finished
+                                tilt.tiltForward()
+                                // Scan for horse object in position 2 (center spike mark)
 
                     )
             );
