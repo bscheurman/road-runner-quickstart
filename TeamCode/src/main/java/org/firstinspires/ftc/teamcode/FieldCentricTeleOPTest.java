@@ -34,16 +34,12 @@ public class TeleOpFieldCentric extends LinearOpMode {
         // Initialize SampleMecanumDrive
         MecanumDrive drive = new MecanumDrive(hardwareMap,beginPose );
 
-        frontleft = hardwareMap.get(DcMotor.class, "frontleft");
-        frontright = hardwareMap.get(DcMotor.class, "frontright");
-        backleft = hardwareMap.get(DcMotor.class, "backleft");
-        backright = hardwareMap.get(DcMotor.class, "backright");
         // We want to turn off velocity control for teleop
         // Velocity control per wheel is not necessary outside of motion profiled auto
-        backleft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontright.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontleft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         // Retrieve our pose from the PoseStorage.currentPose static field
         // See AutoTransferPose.java for further details
 
