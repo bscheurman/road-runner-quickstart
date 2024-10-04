@@ -21,10 +21,6 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
  */
 @TeleOp(group = "advanced")
 public class TeleOpFieldCentric extends LinearOpMode {
-    private DcMotor frontleft;
-    private DcMotor frontright;
-    private DcMotor backleft;
-    private DcMotor backright;
 
     private double speed = 1.0;
     @Override
