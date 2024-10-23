@@ -110,6 +110,20 @@ public class TeleOpFieldCentric extends OpMode {
             fieldCentric = false;
         }
 
+        if (gamepad1.right_bumper) {
+            speed = 2.0;
+        }
+        else {
+            speed = 1.0;
+        }
+
+        if (gamepad1.left_bumper) {
+            speed = 0.5;
+        }
+        else {
+            speed = 1.0;
+        }
+
         // Create a vector from the gamepad x/y inputs
         Vector2d input = new Vector2d(
                 -gamepad1.left_stick_y * speed,
@@ -120,11 +134,11 @@ public class TeleOpFieldCentric extends OpMode {
         if (fieldCentric) {
             if (blue){
                 input = drive.pose.heading.plus(Math.PI).inverse().times(
-                        new Vector2d(-input.x, input.y));
+                        new Vector2d(input.x, input.y));
             } else {
                 // you might need to inverse the heading or not
                 input = drive.pose.heading.inverse().times(
-                        new Vector2d(-input.x, input.y));
+                        new Vector2d(input.x, input.y));
             }
         }
 
