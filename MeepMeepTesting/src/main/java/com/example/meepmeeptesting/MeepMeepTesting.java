@@ -17,16 +17,28 @@ public class MeepMeepTesting {
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, -61, Math.toRadians(90)))
 
-                .lineToY(-40)
-                .turn(Math.toRadians(90))
-                .lineToX(-54)
-                .turn(Math.toRadians(90))
+//                        .lineToXSplineHeading(11, Math.toRadians(0))
+//                        .setTangent(Math.toRadians(0))
+//                        .turn(Math.toRadians(45))
+//                        .waitSeconds(0.1)
+//
+//                        .lineToYSplineHeading(36, Math.toRadians(180))
+//                        .setTangent(Math.toRadians(180))
+//                        .lineToXSplineHeading(-24, Math.toRadians(-90))
+//                        .setTangent(Math.toRadians(-90))
+//                        .lineToYSplineHeading(0, Math.toRadians(0))
+//                        .setTangent(Math.toRadians(0))
+//                        .lineToX(0)
+//                .lineToY(-40)
+//                .turn(Math.toRadians(90))
+//                 .lineToX(-54)
+//                .turn(Math.toRadians(90))
 
-                //.setTangent(Math.toRadians(90+70))
-                //.lineToXSplineHeading(-44, Math.toRadians(225))
-                //.setTangent(Math.toRadians(225))
-                //.lineToY(-54)
-                //.turnTo(Math.toRadians(270))
+                .setTangent(Math.toRadians(90+70))
+                .lineToXSplineHeading(-44, Math.toRadians(225))
+                .setTangent(Math.toRadians(225))
+                .lineToY(-54)
+                .turnTo(Math.toRadians(270))
 
                 .build());
 
