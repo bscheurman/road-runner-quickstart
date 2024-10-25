@@ -66,7 +66,7 @@ public class TeleOpFieldCentric extends OpMode {
         // Retrieve our pose from the PoseStorage.currentPose static field
         // See AutoTransferPose.java for further details
         Pose2d beginPose = new Pose2d(0
-                , -61, Math.toRadians(90));
+                , -61, Math.toRadians(0));
         // Initialize SampleMecanumDrive
         drive = new MecanumDrive(hardwareMap,beginPose );
         DcMotor slideMotor = hardwareMap.get(DcMotor.class, "harm");
@@ -111,17 +111,17 @@ public class TeleOpFieldCentric extends OpMode {
         }
 
         if (gamepad1.right_bumper) {
-            speed = 2.0;
+            speed = 1.0;
         }
         else {
-            speed = 1.0;
+            speed = 0.7;
         }
 
         if (gamepad1.left_bumper) {
-            speed = 0.5;
+            speed = 0.4;
         }
         else {
-            speed = 1.0;
+            speed = 0.7;
         }
 
         // Create a vector from the gamepad x/y inputs
