@@ -10,11 +10,11 @@ import java.util.List;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+//import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.tfod.TfodProcessor;
+//import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
 @Autonomous(name = "Autonomous2023EncoderDual2 (Blocks to Java)", preselectTeleOp = "Gobilda 2")
 public class Autonomous2023EncodeDual extends LinearOpMode {
@@ -32,7 +32,6 @@ public class Autonomous2023EncodeDual extends LinearOpMode {
     boolean blue;
     VisionPortal myVisionPortal;
     int time2;
-    TfodProcessor myTfodProcessor;
     long startTime;
     AprilTagProcessor myAprilTagProcessor;
     int spikeSelection;
@@ -62,7 +61,6 @@ public class Autonomous2023EncodeDual extends LinearOpMode {
      */
     private void initDoubleVision() {
         AprilTagProcessor.Builder myAprilTagProcessorBuilder;
-        TfodProcessor.Builder myTfodProcessorBuilder;
         VisionPortal.Builder myVisionPortalBuilder;
 
         // First, create an AprilTagProcessor.
@@ -74,75 +72,20 @@ public class Autonomous2023EncodeDual extends LinearOpMode {
         myAprilTagProcessor = myAprilTagProcessorBuilder.build();
         // Set the detector decimation.
         myAprilTagProcessor.setDecimation(1);
-        // First, create a TfodProcessor.Builder.
-        myTfodProcessorBuilder = new TfodProcessor.Builder();
-        // Set the name of the file where the model can be found.
-        myTfodProcessorBuilder.setModelFileName("model_20231207_redblue.tflite");
-        // Set the full ordered list of labels the model is trained to recognize.
-        myTfodProcessorBuilder.setModelLabels(JavaUtil.createListWith("blue_bronco", "red_bronco"));
-        // Set the aspect ratio for the images used when the model was created.
-        myTfodProcessorBuilder.setModelAspectRatio(4 / 3);
-        // Next, create a TfodProcessor.
-        myTfodProcessor = myTfodProcessorBuilder.build();
+
         // Next, create a VisionPortal.
         myVisionPortalBuilder = new VisionPortal.Builder();
         myVisionPortalBuilder.setCamera(ClassFactory.createSwitchableCameraNameForAllWebcams(hardwareMap));
         // Set the camera resolution.
         myVisionPortalBuilder.setCameraResolution(new Size(640, 480));
-        // Add myTfodProcessor to the VisionPortal.Builder.
-        myVisionPortalBuilder.addProcessor(myTfodProcessor);
         // Add myAprilTagProcessor to the VisionPortal.Builder.
         myVisionPortalBuilder.addProcessor(myAprilTagProcessor);
         // Enable the live camera preview.
         myVisionPortalBuilder.enableLiveView(false);
         // Create a VisionPortal by calling build.
         myVisionPortal = myVisionPortalBuilder.build();
-        // at first, it will enable the Tensorflow processor and disable the April Tag processor until later
-        myVisionPortal.setProcessorEnabled(myTfodProcessor, true);
-        myVisionPortal.setProcessorEnabled(myAprilTagProcessor, false);
         telemetry.addLine("init  double vision complete");
         telemetry.update();
-    }
-
-    /**
-     * Display info (using telemetry) for a detected object
-     */
-    private void telemetryTfod2() {
-        List<Recognition> myTfodRecognitions;
-        Recognition myTfodRecognition;
-        float x;
-        float y;
-
-        // Get a list of recognitions from TFOD.
-        myTfodRecognitions = myTfodProcessor.getRecognitions();
-        bestObjectRecognition = 0;
-        telemetry.addData("# Objects Detected", JavaUtil.listLength(myTfodRecognitions));
-        // Iterate through list and call a function to display info for each recognized object.
-        for (Recognition myTfodRecognition_item : myTfodRecognitions) {
-            myTfodRecognition = myTfodRecognition_item;
-            // Display info about the recognition.
-            telemetry.addLine("");
-            // Display label and confidence.
-            // Display the label and confidence for the recognition.
-            telemetry.addData("Image", myTfodRecognition.getLabel() + " (" + JavaUtil.formatNumber(myTfodRecognition.getConfidence() * 100, 0) + " % Conf.)");
-            // Display position.
-            x = (myTfodRecognition.getLeft() + myTfodRecognition.getRight()) / 2;
-            y = (myTfodRecognition.getTop() + myTfodRecognition.getBottom()) / 2;
-            // Display the position of the center of the detection boundary for the recognition
-            telemetry.addData("- Position", JavaUtil.formatNumber(x, 0) + ", " + JavaUtil.formatNumber(y, 0));
-            // Display size
-            // Display the size of detection boundary for the recognition
-            telemetry.addData("- Size", JavaUtil.formatNumber(myTfodRecognition.getWidth(), 0) + " x " + JavaUtil.formatNumber(myTfodRecognition.getHeight(), 0));
-            // Switch Cameras and use April Tags Once the Object Confidence is great enough
-            if (myTfodRecognition.getConfidence() > bestObjectRecognition && spikeSelection == 0) {
-                bestObjectRecognition = myTfodRecognition.getConfidence();
-                if (myTfodRecognition.getLabel().equals("blue_bronco")) {
-                    blue = true;
-                } else {
-                    blue = false;
-                }
-            }
-        }
     }
 
     /**
@@ -378,7 +321,6 @@ public class Autonomous2023EncodeDual extends LinearOpMode {
         // Add myAprilTagProcessor to the VisionPortal.Builder.
         myVisionPortal.setProcessorEnabled(myAprilTagProcessor, true);
         // Enable or disable the TensorFlow Object Detection processor.
-        myVisionPortal.setProcessorEnabled(myTfodProcessor, false);
     }
 
     /**
@@ -454,13 +396,7 @@ public class Autonomous2023EncodeDual extends LinearOpMode {
         } else {
             telemetry.addLine("Dpad Right to enable AprilTag");
         }
-        if (myVisionPortal.getProcessorEnabled(myTfodProcessor)) {
-            telemetry.addLine("Dpad Down to disable TFOD");
-            telemetry.addLine("");
-            telemetryTfod2();
-        } else {
-            telemetry.addLine("Dpad Up to enable TFOD");
-        }
+
     }
 
     /**
