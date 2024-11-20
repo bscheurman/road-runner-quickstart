@@ -47,9 +47,11 @@ public class TeleOpFieldCentric extends OpMode {
     private  MecanumDrive drive;
     private  Claw claw;
 
-    private  Harm harm;
+    private  Slide harm;
 
     private Slide slide;
+
+    private Slide slide2;
 
     private double OldposR;
 
@@ -76,8 +78,10 @@ public class TeleOpFieldCentric extends OpMode {
 
         wrist = new Wrist(hardwareMap);
         claw = new Claw(hardwareMap);
-        harm = new Harm(hardwareMap);
-        slide = new Slide(hardwareMap);
+        harm = new Slide(hardwareMap,"harm");
+        slide = new Slide(hardwareMap, "Varm1");
+        slide2 = new Slide(hardwareMap, "Varm2");
+
         // Tilt the arm up for initialization. Tilt is an action, which will set the tilt servo
         Actions.runBlocking(wrist.wristBack());
         Actions.runBlocking(claw.clawClose());
@@ -183,6 +187,7 @@ public class TeleOpFieldCentric extends OpMode {
 
             OldposR = (gamepad2.right_stick_x);
         }
+
 
         if (gamepad2.left_bumper) {
             packet.addLine("wrist up");

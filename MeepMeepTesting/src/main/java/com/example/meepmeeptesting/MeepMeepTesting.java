@@ -34,11 +34,11 @@ public class MeepMeepTesting {
 //                 .lineToX(-54)
 //                .turn(Math.toRadians(90))
 
-                .setTangent(Math.toRadians(90+70))
-                .lineToXSplineHeading(-44, Math.toRadians(225))
-                .setTangent(Math.toRadians(225))
-                .lineToY(-54)
-                .turnTo(Math.toRadians(270))
+                .setTangent(Math.toRadians(90))
+                .lineToYSplineHeading(-34, Math.toRadians(90))
+//                .setTangent(Math.toRadians(225))
+//                .lineToY(-54)
+//                .turnTo(Math.toRadians(270))
 
                 .build());
 

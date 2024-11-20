@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -29,9 +30,9 @@ public final class Autonomous2024 extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         harmMotor = hardwareMap.get(DcMotor.class, "harm");
         wristServo = hardwareMap.get(Servo.class, "wrist");
-        clawServo = hardwareMap.get(Servo.class, "claw1");
+        clawServo = hardwareMap.get(Servo.class, "claw");
         Pose2d beginPose = new Pose2d(0
-                , -60, 90);
+                , -61,  Math.toRadians(90));
         if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
             MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
             Wrist wrist = new Wrist(hardwareMap);
@@ -47,27 +48,23 @@ public final class Autonomous2024 extends LinearOpMode {
             waitForStart();
 
             Actions.runBlocking(
+                     new SequentialAction(
+
+                                    drive.actionBuilder(beginPose)
+                                            .setTangent(Math.toRadians(90))
+                                            .lineToYSplineHeading(-34, Math.toRadians(90))
+
+                                            .build(),
+                                    wrist.wristUp()));
+
+
+                                    // face south
                 //drive.actionBuilder(beginPose)
                 //            .splineTo(new Vector2d(30, 30), Math.PI / 2)
                 //        .splineTo(new Vector2d(0, 60), Math.PI)
                 //        .build());
-            drive.actionBuilder(beginPose)
-                    .lineToY(-40)
-                    .turn(Math.toRadians(90))
-                    .lineToX(-54)
-                    .turn(Math.toRadians(90))
 
-                    .build());
-        } else if (TuningOpModes.DRIVE_CLASS.equals(TankDrive.class)) {
-            TankDrive drive = new TankDrive(hardwareMap, beginPose);
 
-            waitForStart();
-
-            Actions.runBlocking(
-                    drive.actionBuilder(beginPose)
-                            .splineTo(new Vector2d(30, 30), Math.PI / 2)
-                            .splineTo(new Vector2d(0, 60), Math.PI)
-                            .build());
         } else {
             throw new RuntimeException();
         }

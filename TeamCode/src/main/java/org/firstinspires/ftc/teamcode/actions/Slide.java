@@ -19,9 +19,12 @@ public class Slide {
     int position;
     long startTime;
 
+    String motorNameVar;
+
     // Horizontal Slide Arm
-    public Slide (HardwareMap hardwareMap) {
-        slideMotor = hardwareMap.get(DcMotorEx.class, "harm");
+    public Slide (HardwareMap hardwareMap, String motorName) {
+        motorNameVar = motorName;
+        slideMotor = hardwareMap.get(DcMotorEx.class, motorNameVar);
         slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
