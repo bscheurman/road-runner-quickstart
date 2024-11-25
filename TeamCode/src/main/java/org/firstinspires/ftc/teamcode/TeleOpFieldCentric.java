@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
@@ -47,15 +48,20 @@ public class TeleOpFieldCentric extends OpMode {
     private  MecanumDrive drive;
     private  Claw claw;
 
-    private  Harm harm;
+    private Wrist wrist;
+
+    private  Slide harm;
 
     private Slide slide;
 
+    private Slide slide2;
+
     private double OldposR;
+
+    private double OldposRY;
 
     private boolean started = false;
 
-    private Wrist wrist;
 
     boolean blue = false;
     boolean fieldCentric = true;
@@ -76,13 +82,20 @@ public class TeleOpFieldCentric extends OpMode {
 
         wrist = new Wrist(hardwareMap);
         claw = new Claw(hardwareMap);
-        harm = new Harm(hardwareMap);
-        slide = new Slide(hardwareMap);
-        // Tilt the arm up for initialization. Tilt is an action, which will set the tilt servo
+        harm = new Slide(hardwareMap,"harm");
+       // harm = new Harm(hardwareMap);
+        slide = new Slide(hardwareMap, "Varm1");
+        slide2 = new Slide(hardwareMap, "Varm2");
+
+        // Bring the wrist back and close the claw for initialization. wristback is an action, which will set the tilt servo
         Actions.runBlocking(wrist.wristBack());
         Actions.runBlocking(claw.clawClose());
-        Actions.runBlocking(slide.slideTo0());
-
+        Actions.runBlocking(
+                new ParallelAction(
+                        harm.slideTo0(),
+                        slide.slideTo0(),
+                        slide2.slideTo0()
+                ));
 
         // We want to turn off velocity control for teleop
         // Velocity control per wheel is not necessary outside of motion profiled auto
@@ -162,27 +175,54 @@ public class TeleOpFieldCentric extends OpMode {
         // updated based on gamepads
         if (gamepad2.left_trigger > 0.8) {
             runningActions.add(new SequentialAction(
-                    new SleepAction(0.5),
+                    //new SleepAction(0.5),
                     claw.clawOpen()
             ));
         }
 
         if (gamepad2.left_trigger < 0.1) {
             runningActions.add(new SequentialAction(
-                    new SleepAction(0.5),
+                    //new SleepAction(0.5),
                     claw.clawClose()
             ));
         }
 
+        // Horizontal Slide control (Experimental)
+        // this could be a way to keep sliding out or in as long as you hold the right stick
+        // press right to extend and left to retract
+//        if (gamepad2.right_stick_x >= 0.5 && harm.position < 1000 &&
+//                harm.getCurrentPosition() >= harm.getTargetPosition()) {  // each time it reaches target,
+//            runningActions.add(harm.slideToPos(harm.position + 100));     // add a further target
+//        }
+//        if (gamepad2.right_stick_x <= -0.5 && harm.position > 0 &&
+//                harm.getCurrentPosition() <= harm.getTargetPosition()){
+//            runningActions.add(harm.slideToPos(harm.position - 100));
+//        }
+
+        // Horizontal Slide control
+        // this will slide to match the position of the right stick x
+        // it retracts when you let go of the stick because right_stick_x = 0
         if (gamepad2.right_stick_x >= 0 && gamepad2.right_stick_x != OldposR){
             runningActions.add(new SequentialAction(
-//                    harm.runToPos((int) (gamepad2.right_stick_x*1000))
-                    slide.slideToPos((int) (gamepad2.right_stick_x*1000))
+                     //  harm.runToPos((int) (gamepad2.right_stick_x*1000))
+                    harm.slideToPos((int) (gamepad2.right_stick_x*1000))
 
             ));
 
             OldposR = (gamepad2.right_stick_x);
         }
+
+        // Dual Vertical Slide control
+        if (gamepad2.left_stick_y >= 0 && gamepad2.left_stick_y != OldposRY){
+            runningActions.add(new ParallelAction(
+                    slide.slideToPos((int) (gamepad2.left_stick_y*100)),
+                    slide2.slideToPos((int) (gamepad2.left_stick_y*100))
+
+            ));
+
+            OldposRY = (gamepad2.left_stick_y);
+        }
+
 
         if (gamepad2.left_bumper) {
             packet.addLine("wrist up");
@@ -211,6 +251,7 @@ public class TeleOpFieldCentric extends OpMode {
         runningActions = newActions;
 
         dash.sendTelemetryPacket(packet);
+        telemetry.update();
     }
 
 }
