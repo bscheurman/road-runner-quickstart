@@ -16,7 +16,7 @@ public class Harm {
     public Harm(HardwareMap hardwareMap) {
         harm = hardwareMap.get(DcMotor.class, "harm");
         harm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        harm.setDirection(DcMotorSimple.Direction.FORWARD);
+        harm.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     int pos;

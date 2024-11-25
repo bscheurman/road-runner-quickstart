@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.actions;
 
+import static java.lang.Math.max;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -16,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 // lift class
 public class Slide {
     private DcMotorEx slideMotor;
-    int position;
+    public int position;
     long startTime;
 
     String motorNameVar;
@@ -26,7 +28,19 @@ public class Slide {
         motorNameVar = motorName;
         slideMotor = hardwareMap.get(DcMotorEx.class, motorNameVar);
         slideMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        if (motorName.equals("harm")) {
+            slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        }else {
+            slideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        }
+
+
+    }
+    public int getCurrentPosition () {
+        return slideMotor.getCurrentPosition();
+    }
+    public int getTargetPosition () {
+        return position;
     }
 
 
@@ -35,7 +49,7 @@ public class Slide {
         private boolean initialized = false;
         private int direction = 0;
         SlideToPos (int pos){
-            position = pos;
+            position = max(0,pos); // cant go below 0
             startTime = System.currentTimeMillis();
         }
 
@@ -52,12 +66,15 @@ public class Slide {
                     direction = -1;
                     slideMotor.setPower(-0.8);
                 }
+                // slideMotor.setTargetPosition(position);
+                // slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 initialized = true;
             }
 
             // checks lift's current position
             double pos = slideMotor.getCurrentPosition();
-            packet.put("slidePos", pos);
+            packet.put("slidePos " + motorNameVar, pos);
+            packet.put("slidePosTarget " + motorNameVar, position);
             if (pos < position && direction == 1) {
                 // true causes the action to rerun
                 return true;
@@ -85,12 +102,15 @@ public class Slide {
         public boolean run(@NonNull TelemetryPacket packet) {
             if (!initialized) {
                 slideMotor.setPower(-0.8);
+                position = 0;
+                // slideMotor.setTargetPosition(position);
+                // slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 initialized = true;
             }
 
             double pos = slideMotor.getCurrentPosition();
             packet.put("liftPos", pos);
-            if (pos > 100.0) {
+            if (pos > 1.0) {
                 return true;
             } else {
                 slideMotor.setPower(0);

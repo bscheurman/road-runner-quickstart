@@ -5,8 +5,10 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -17,6 +19,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.actions.Claw;
 import org.firstinspires.ftc.teamcode.actions.Harm;
+import org.firstinspires.ftc.teamcode.actions.Slide;
 import org.firstinspires.ftc.teamcode.actions.Wrist;
 import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
@@ -37,11 +40,18 @@ public final class Autonomous2024 extends LinearOpMode {
             MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
             Wrist wrist = new Wrist(hardwareMap);
             Claw claw = new Claw(hardwareMap);
-            Harm harm = new Harm(hardwareMap);
+            Slide harm = new Slide(hardwareMap,"harm");
+            Slide slide1 = new Slide(hardwareMap,"Varm1");
+            Slide slide2 = new Slide(hardwareMap,"Varm2");
             // Tilt the arm up for initialization. Tilt is an action, which will set the tilt servo
             Actions.runBlocking(wrist.wristDown());
             Actions.runBlocking(claw.clawClose());
-            Actions.runBlocking(harm.runToPos(0));
+            Actions.runBlocking(
+                    new ParallelAction(
+                            harm.slideTo0(),
+                            slide1.slideTo0(),
+                            slide2.slideTo0()
+                    ));
 
 
 
@@ -56,6 +66,19 @@ public final class Autonomous2024 extends LinearOpMode {
 
                                             .build(),
                                     wrist.wristUp()));
+            Actions.runBlocking(
+                    new ParallelAction(
+
+                            slide1.slideToPos(100),
+                            slide2.slideToPos(100),
+                            harm.slideToPos(1000)));
+            Actions.runBlocking(
+                    new SequentialAction(
+
+                            claw.clawOpen(),
+                            new SleepAction(0.5),
+                            claw.clawClose(),
+                            wrist.wristBack()));
 
 
                                     // face south
