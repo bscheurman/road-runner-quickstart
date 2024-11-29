@@ -11,7 +11,10 @@ import org.firstinspires.ftc.teamcode.Autonomous2024;
 
 public class Wrist {
     private Servo wrist;
-    private Servo Wrist;
+
+    public double pos;
+
+
 
     public Wrist(HardwareMap hardwareMap) {
         wrist = hardwareMap.get(Servo.class, "wrist");
@@ -22,6 +25,7 @@ public class Wrist {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             wrist.setPosition(1);
+
             return false;
         }
     }
@@ -29,7 +33,9 @@ public class Wrist {
         return new Wrist.wristDown();
     }
 
-
+    public double getPos(){
+        return wrist.getPosition();
+    }
 
     public class wristUp implements Action {
         @Override

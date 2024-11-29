@@ -31,9 +31,10 @@ public class Slide {
         if (motorName.equals("harm")) {
             slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         }else {
-            slideMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            slideMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         }
-
+        slideMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slideMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
     }
     public int getCurrentPosition () {
@@ -52,6 +53,7 @@ public class Slide {
             position = max(0,pos); // cant go below 0
             startTime = System.currentTimeMillis();
         }
+
 
         // actions are formatted via telemetry packets as below
         @Override
@@ -93,7 +95,58 @@ public class Slide {
 
         return new SlideToPos(pos);
     }
+    public Action slideUp(double y) {
 
+        return new SlideUp(y);
+    }
+    public class SlideUp implements Action {
+        // checks if the lift motor has been powered on
+        private boolean initialized = false;
+        private int direction = 0;
+        private double y = 0;
+        SlideUp (double y){
+            startTime = System.currentTimeMillis();
+            this.y=y;
+        }
+
+
+        // actions are formatted via telemetry packets as below
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            // powers on motor, if it is not on
+            if (!initialized) {
+                // direction of motor depends if running to a higher or lower position
+//                if (slideMotor.getCurrentPosition() < position) {
+//                    direction = 1;
+//                    slideMotor.setPower(0.8);
+//                } else {
+//                    direction = -1;
+//                    slideMotor.setPower(-0.8);
+//                }
+                // slideMotor.setTargetPosition(position);
+                // slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                initialized = true;
+            }
+            slideMotor.setPower(y/3);
+            // checks lift's current position
+            double pos = slideMotor.getCurrentPosition();
+            packet.put("slidePos " + motorNameVar, pos);
+            //packet.put("slidePosTarget " + motorNameVar, position);
+//            if (pos < position && direction == 1) {
+//                // true causes the action to rerun
+//                return true;
+//            } if (pos > position && direction == -1) {
+//                return true;
+//            } else {
+//                // false stops action rerun
+//                slideMotor.setPower(0);
+//                return false;
+           // }
+            // overall, the action powers the lift until it surpasses
+            // 1000 encoder ticks, then powers it off
+            return false;
+        }
+    }
     // within the Lift class
     public class SlideTo0 implements Action {
         private boolean initialized = false;
@@ -101,16 +154,17 @@ public class Slide {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             if (!initialized) {
-                slideMotor.setPower(-0.8);
+
                 position = 0;
-                // slideMotor.setTargetPosition(position);
-                // slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setTargetPosition(position);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                slideMotor.setPower(-0.8);
                 initialized = true;
             }
 
             double pos = slideMotor.getCurrentPosition();
-            packet.put("liftPos", pos);
-            if (pos > 1.0) {
+            packet.put("slide pos " + motorNameVar, pos);
+            if (pos > 10.0 || pos < -10) {
                 return true;
             } else {
                 slideMotor.setPower(0);
