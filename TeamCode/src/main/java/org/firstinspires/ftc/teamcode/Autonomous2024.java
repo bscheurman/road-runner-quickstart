@@ -44,18 +44,26 @@ public final class Autonomous2024 extends LinearOpMode {
             Slide slide1 = new Slide(hardwareMap,"Varm1");
             Slide slide2 = new Slide(hardwareMap,"Varm2");
             // Tilt the arm up for initialization. Tilt is an action, which will set the tilt servo
-            Actions.runBlocking(wrist.wristDown());
+            Actions.runBlocking(wrist.wristBack());
             Actions.runBlocking(claw.clawClose());
-            Actions.runBlocking(
-                    new ParallelAction(
-                            harm.slideTo0(),
-                            slide1.slideTo0(),
-                            slide2.slideTo0()
-                    ));
+//            Actions.runBlocking(
+//                    new ParallelAction(
+//                            harm.slideTo0(),
+//                            slide1.slideTo0(),
+//                            slide2.slideTo0()
+//                    ));
 
 
 
             waitForStart();
+
+            Actions.runBlocking(
+                    new ParallelAction(
+
+                            slide1.slideToPos(800),
+                            slide2.slideToPos(800),
+                            harm.slideToPos(200),
+                            wrist.wristUp()));
 
             Actions.runBlocking(
                      new SequentialAction(
@@ -65,13 +73,9 @@ public final class Autonomous2024 extends LinearOpMode {
                                             .lineToYSplineHeading(-34, Math.toRadians(90))
 
                                             .build(),
-                                    wrist.wristUp()));
-            Actions.runBlocking(
-                    new ParallelAction(
+                                    wrist.wristUp(),
+                                     new SleepAction(0.5)));
 
-                            slide1.slideToPos(100),
-                            slide2.slideToPos(100),
-                            harm.slideToPos(1000)));
             Actions.runBlocking(
                     new SequentialAction(
 

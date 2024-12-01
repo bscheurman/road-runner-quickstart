@@ -5,25 +5,20 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.actions.Claw;
-import org.firstinspires.ftc.teamcode.actions.Harm;
 import org.firstinspires.ftc.teamcode.actions.Slide;
 import org.firstinspires.ftc.teamcode.actions.Wrist;
-import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,8 +135,8 @@ public class TeleOpFieldCentric extends OpMode {
             speed = 0.7;
         }
 
-        if (wrist.getPos() > .9){
-            speed = .2;
+        if (wrist.getCurrentPos() > .85){
+            speed = .3;
         }
 
         // Create a vector from the gamepad x/y inputs
@@ -197,18 +192,39 @@ public class TeleOpFieldCentric extends OpMode {
             ));
            // ClawOn = true;
         }
-
+        // Wrist control using right stick up and down for continuous up and down
+        if (gamepad2.right_stick_y*-1.0>= 0.5 && wrist.getCurrentPos() > 0.15 &&
+                wrist.getCurrentPos() - 0.05 <= wrist.getTargetPos()) {  // each time it reaches target,
+            if (runningActions.isEmpty())
+                runningActions.add(wrist.wristMoveToPos(wrist.getTargetPos()- 0.02));     // add a further target
+        }
+        if (gamepad2.right_stick_y*-1.0 <= -0.5 && wrist.getCurrentPos() < 0.9 &&
+                wrist.getCurrentPos() + 0.05 >= wrist.getTargetPos()){
+            if (runningActions.isEmpty())
+                runningActions.add(wrist.wristMoveToPos(wrist.getTargetPos() + 0.02));
+        }
         // Horizontal Slide control (Experimental)
         // this could be a way to keep sliding out or in as long as you hold the right stick
         // press right to extend and left to retract
-        if (gamepad2.right_stick_x >= 0.5 && harm.position < 800 &&
-                harm.getCurrentPosition() >= harm.getTargetPosition()) {  // each time it reaches target,
-            runningActions.add(harm.slideToPos(harm.position + 100));     // add a further target
+        if (gamepad2.right_stick_x >= 0.5 && harm.getCurrentPosition() < 800 &&
+                harm.getCurrentPosition() + 100 >= harm.getTargetPosition()) {  // each time it reaches target,
+            if (runningActions.isEmpty())
+                runningActions.add(harm.slideToPos(harm.getTargetPosition() + 100));     // add a further target
         }
-        if (gamepad2.right_stick_x <= -0.5 && harm.position > 0 &&
+        if (gamepad2.right_stick_x <= -0.5 && harm.getCurrentPosition() > 0 &&
                 harm.getCurrentPosition() - 100 <= harm.getTargetPosition()){
-            runningActions.add(harm.slideToPos(harm.position - 100));
+            if (runningActions.isEmpty())
+                runningActions.add(harm.slideToPos(harm.getTargetPosition() - 100));
         }
+
+        //wristPos : 0.75
+        //wristPosTarget : 0.7
+
+        //slidePos harm: 1008.0
+        //slidePosTarget harm: 900
+
+        //slidePos harm: 881.0
+        //slidePosTarget harm: 797
 
         // Horizontal Slide control
         // this will slide to match the position of the right stick x

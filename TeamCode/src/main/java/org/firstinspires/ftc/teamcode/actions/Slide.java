@@ -10,15 +10,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 
 // lift class
 public class Slide {
     private DcMotorEx slideMotor;
-    public int position;
+    public int targetPosition;
     long startTime;
 
     String motorNameVar;
@@ -41,7 +38,7 @@ public class Slide {
         return slideMotor.getCurrentPosition();
     }
     public int getTargetPosition () {
-        return position;
+        return targetPosition;
     }
 
 
@@ -50,7 +47,7 @@ public class Slide {
         private boolean initialized = false;
         private int direction = 0;
         SlideToPos (int pos){
-            position = max(0,pos); // cant go below 0
+            targetPosition = max(0,pos); // cant go below 0
             startTime = System.currentTimeMillis();
         }
 
@@ -61,12 +58,12 @@ public class Slide {
             // powers on motor, if it is not on
             if (!initialized) {
                 // direction of motor depends if running to a higher or lower position
-                if (slideMotor.getCurrentPosition() < position) {
+                if (slideMotor.getCurrentPosition() < targetPosition) {
                     direction = 1;
-                    slideMotor.setPower(0.8);
+                    slideMotor.setPower(0.6);
                 } else {
                     direction = -1;
-                    slideMotor.setPower(-0.8);
+                    slideMotor.setPower(-0.6);
                 }
                 // slideMotor.setTargetPosition(position);
                 // slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -76,17 +73,28 @@ public class Slide {
             // checks lift's current position
             double pos = slideMotor.getCurrentPosition();
             packet.put("slidePos " + motorNameVar, pos);
-            packet.put("slidePosTarget " + motorNameVar, position);
-            if (pos < position && direction == 1) {
+            packet.put("slidePosTarget " + motorNameVar, targetPosition);
+            packet.put("direction " + motorNameVar, direction);
+
+            // timeout if its stuck for 0.5 seconds
+            if (System.currentTimeMillis() > startTime + 500) {
+                slideMotor.setPower(0);
+                return false;
+            }
+            if (pos < targetPosition && direction == 1) {
                 // true causes the action to rerun
                 return true;
-            } if (pos > position && direction == -1) {
+            } if (pos > targetPosition && direction == -1) {
                 return true;
             } else {
                 // false stops action rerun
                 slideMotor.setPower(0);
                 return false;
             }
+
+            //slidePos harm: 1008.0
+            //slidePosTarget harm: 900
+
             // overall, the action powers the lift until it surpasses
             // 1000 encoder ticks, then powers it off
         }
@@ -155,8 +163,8 @@ public class Slide {
         public boolean run(@NonNull TelemetryPacket packet) {
             if (!initialized) {
 
-                position = 0;
-                slideMotor.setTargetPosition(position);
+                targetPosition = 0;
+                slideMotor.setTargetPosition(targetPosition);
                 slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 slideMotor.setPower(-0.8);
                 initialized = true;
