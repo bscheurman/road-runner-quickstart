@@ -5,25 +5,20 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.actions.Claw;
-import org.firstinspires.ftc.teamcode.actions.Harm;
 import org.firstinspires.ftc.teamcode.actions.Slide;
 import org.firstinspires.ftc.teamcode.actions.Wrist;
-import org.firstinspires.ftc.teamcode.tuning.TuningOpModes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +53,9 @@ public class TeleOpFieldCentric extends OpMode {
 
     private double OldposR;
 
-    private double OldposRY;
+    private double OldposL;
+
+    private boolean ClawOn = true;
 
     private boolean started = false;
 
@@ -83,19 +80,18 @@ public class TeleOpFieldCentric extends OpMode {
         wrist = new Wrist(hardwareMap);
         claw = new Claw(hardwareMap);
         harm = new Slide(hardwareMap,"harm");
-       // harm = new Harm(hardwareMap);
         slide = new Slide(hardwareMap, "Varm1");
         slide2 = new Slide(hardwareMap, "Varm2");
 
         // Bring the wrist back and close the claw for initialization. wristback is an action, which will set the tilt servo
-        Actions.runBlocking(wrist.wristBack());
-        Actions.runBlocking(claw.clawClose());
-        Actions.runBlocking(
-                new ParallelAction(
-                        harm.slideTo0(),
-                        slide.slideTo0(),
-                        slide2.slideTo0()
-                ));
+//        Actions.runBlocking(wrist.wristBack());
+//        Actions.runBlocking(claw.clawClose());
+//         Actions.runBlocking(
+//              new ParallelAction(
+//                        harm.slideTo0(),
+//                      slide.slideTo0(),
+//                       slide2.slideTo0()
+//               ));
 
         // We want to turn off velocity control for teleop
         // Velocity control per wheel is not necessary outside of motion profiled auto
@@ -115,6 +111,8 @@ public class TeleOpFieldCentric extends OpMode {
             Actions.runBlocking(wrist.wristUp());
             started = true;
         }
+
+
 
         // allow to switch between field centric using the dpad
         if (gamepad1.dpad_up) {
@@ -137,9 +135,13 @@ public class TeleOpFieldCentric extends OpMode {
             speed = 0.7;
         }
 
+        if (wrist.getCurrentPos() > .85){
+            speed = .4;
+        }
+
         // Create a vector from the gamepad x/y inputs
         Vector2d input = new Vector2d(
-                -gamepad1.left_stick_y * speed,
+                (fieldCentric ? 1 : -1) * gamepad1.left_stick_y * speed,
                 -gamepad1.left_stick_x * speed
         );
 
@@ -147,11 +149,11 @@ public class TeleOpFieldCentric extends OpMode {
         if (fieldCentric) {
             if (blue){
                 input = drive.pose.heading.plus(Math.PI).inverse().times(
-                        new Vector2d(input.x, input.y));
+                        new Vector2d(-input.x, input.y));
             } else {
                 // you might need to inverse the heading or not
                 input = drive.pose.heading.inverse().times(
-                        new Vector2d(input.x, input.y));
+                        new Vector2d(-input.x, input.y));
             }
         }
 
@@ -160,11 +162,11 @@ public class TeleOpFieldCentric extends OpMode {
         drive.setDrivePowers(
                 new PoseVelocity2d(
                         input,
-                        -gamepad1.right_stick_x
+                        -gamepad1.right_stick_x * speed
                 )
         );
 
-        //telemetry.addData("x", poseEstimate.position.x);
+        telemetry.addData("left_stick_y", gamepad2.left_stick_y);
         //telemetry.addData("y", poseEstimate.position.y);
         //telemetry.addData("heading", poseEstimate.heading);
         //telemetry.update();
@@ -173,54 +175,91 @@ public class TeleOpFieldCentric extends OpMode {
         drive.updatePoseEstimate();
 
         // updated based on gamepads
-        if (gamepad2.left_trigger > 0.8) {
-            runningActions.add(new SequentialAction(
-                    //new SleepAction(0.5),
-                    claw.clawOpen()
-            ));
-        }
-
-        if (gamepad2.left_trigger < 0.1) {
+        if (gamepad2.x ) {
             runningActions.add(new SequentialAction(
                     //new SleepAction(0.5),
                     claw.clawClose()
+
             ));
+          //  ClawOn = false;
         }
 
+        if (gamepad2.y) {
+            runningActions.add(new SequentialAction(
+                    //new SleepAction(0.5),
+                    claw.clawOpen()
+
+            ));
+           // ClawOn = true;
+        }
+        // Wrist control using right stick up and down for continuous up and down
+        if (gamepad2.right_stick_y*-1.0>= 0.5 && wrist.getCurrentPos() > 0.15 &&
+                wrist.getCurrentPos() - 0.05 <= wrist.getTargetPos()) {  // each time it reaches target,
+            if (runningActions.isEmpty())
+                runningActions.add(wrist.wristMoveToPos(wrist.getTargetPos()- 0.02));     // add a further target
+        }
+        if (gamepad2.right_stick_y*-1.0 <= -0.5 && wrist.getCurrentPos() < 0.9 &&
+                wrist.getCurrentPos() + 0.05 >= wrist.getTargetPos()){
+            if (runningActions.isEmpty())
+                runningActions.add(wrist.wristMoveToPos(wrist.getTargetPos() + 0.02));
+        }
         // Horizontal Slide control (Experimental)
         // this could be a way to keep sliding out or in as long as you hold the right stick
         // press right to extend and left to retract
-//        if (gamepad2.right_stick_x >= 0.5 && harm.position < 1000 &&
-//                harm.getCurrentPosition() >= harm.getTargetPosition()) {  // each time it reaches target,
-//            runningActions.add(harm.slideToPos(harm.position + 100));     // add a further target
-//        }
-//        if (gamepad2.right_stick_x <= -0.5 && harm.position > 0 &&
-//                harm.getCurrentPosition() <= harm.getTargetPosition()){
-//            runningActions.add(harm.slideToPos(harm.position - 100));
-//        }
+        if (gamepad2.right_stick_x >= 0.5 && harm.getCurrentPosition() < 800 &&
+                harm.getCurrentPosition() + 100 >= harm.getTargetPosition()) {  // each time it reaches target,
+            if (runningActions.isEmpty())
+                runningActions.add(harm.slideToPos(harm.getTargetPosition() + 100));     // add a further target
+        }
+        if (gamepad2.right_stick_x <= -0.5 && harm.getCurrentPosition() > 0 &&
+                harm.getCurrentPosition() - 100 <= harm.getTargetPosition()){
+            if (runningActions.isEmpty())
+                runningActions.add(harm.slideToPos(harm.getTargetPosition() - 100));
+        }
+
+        //wristPos : 0.75
+        //wristPosTarget : 0.7
+
+        //slidePos harm: 1008.0
+        //slidePosTarget harm: 900
+
+        //slidePos harm: 881.0
+        //slidePosTarget harm: 797
 
         // Horizontal Slide control
         // this will slide to match the position of the right stick x
         // it retracts when you let go of the stick because right_stick_x = 0
-        if (gamepad2.right_stick_x >= 0 && gamepad2.right_stick_x != OldposR){
-            runningActions.add(new SequentialAction(
-                     //  harm.runToPos((int) (gamepad2.right_stick_x*1000))
-                    harm.slideToPos((int) (gamepad2.right_stick_x*1000))
-
-            ));
-
-            OldposR = (gamepad2.right_stick_x);
-        }
+//        if (gamepad2.right_stick_x >= 0 && gamepad2.right_stick_x != OldposR){
+//            runningActions.add(new SequentialAction(
+//                     //  harm.runToPos((int) (gamepad2.right_stick_x*1000))
+//                    harm.slideToPos((int) (gamepad2.right_stick_x*800))
+//
+//            ));
+//
+//            OldposR = (gamepad2.right_stick_x);
+//        }
 
         // Dual Vertical Slide control
-        if (gamepad2.left_stick_y >= 0 && gamepad2.left_stick_y != OldposRY){
+//        if (gamepad2.left_stick_y <= 0 && gamepad2.left_stick_y != OldposRY){
+//            runningActions.add(new ParallelAction(
+//                    slide2.slideToPos((int) (gamepad2.left_stick_y*-1000)),
+//                    slide.slideToPos((int) (gamepad2.left_stick_y*-1000))
+//
+//
+//            ));
+//
+//            OldposRY = (gamepad2.left_stick_y);
+//        }
+
+        if (gamepad2.left_stick_y != OldposL){
             runningActions.add(new ParallelAction(
-                    slide.slideToPos((int) (gamepad2.left_stick_y*100)),
-                    slide2.slideToPos((int) (gamepad2.left_stick_y*100))
+                    slide2.slideUp((int) (gamepad2.left_stick_y*-1)),
+                    slide.slideUp((int) (gamepad2.left_stick_y*-1))
+
 
             ));
 
-            OldposRY = (gamepad2.left_stick_y);
+            OldposL = (gamepad2.left_stick_y);
         }
 
 

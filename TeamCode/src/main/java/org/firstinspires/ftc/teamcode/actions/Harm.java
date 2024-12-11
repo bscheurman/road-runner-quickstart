@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.Autonomous2024;
-
 public class Harm {
     private DcMotor harm;
 
@@ -52,17 +50,19 @@ public class Harm {
             double currpos = harm.getCurrentPosition();
             packet.put("horz slide pos", currpos);
             packet.put("horz slide target", pos);
-            if (currpos < pos && direction == 1) {
-                // true causes the action to rerun
-                return true;
-            } if (currpos > pos && direction == -1) {
-                return true;
-            } else {
-                // false stops action rerun
-                harm.setPower(0);
-                return false;
-            }
 
+
+//            if (currpos < pos && direction == 1) {
+//                // true causes the action to rerun
+//                return true;
+//            } if (currpos > pos && direction == -1) {
+//                return true;
+//            } else {
+//                // false stops action rerun
+//                harm.setPower(0);
+//                return false;
+//            }
+            return false;
         }
     }
     public Action runToPos(int pos) {
