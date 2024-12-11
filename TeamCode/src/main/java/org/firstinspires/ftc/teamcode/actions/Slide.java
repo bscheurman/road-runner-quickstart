@@ -57,16 +57,18 @@ public class Slide {
         public boolean run(@NonNull TelemetryPacket packet) {
             // powers on motor, if it is not on
             if (!initialized) {
+                slideMotor.setTargetPosition(targetPosition);
+                slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 // direction of motor depends if running to a higher or lower position
                 if (slideMotor.getCurrentPosition() < targetPosition) {
                     direction = 1;
-                    slideMotor.setPower(0.6);
+                    slideMotor.setPower(0.4);
                 } else {
-                    direction = -1;
-                    slideMotor.setPower(-0.6);
+                    direction = 1;
+                    slideMotor.setPower(0.4);
+                    //slideMotor.setPower(-0.4);
                 }
-                // slideMotor.setTargetPosition(position);
-                // slideMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
                 initialized = true;
             }
 
@@ -77,18 +79,24 @@ public class Slide {
             packet.put("direction " + motorNameVar, direction);
 
             // timeout if its stuck for 0.5 seconds
-            if (System.currentTimeMillis() > startTime + 500) {
-                slideMotor.setPower(0);
+            if (System.currentTimeMillis() > startTime + 1500) {
+                //slideMotor.setPower(0);
+                if (targetPosition == 0) {
+                    slideMotor.setPower(0);
+                }
                 return false;
             }
             if (pos < targetPosition && direction == 1) {
                 // true causes the action to rerun
-                return true;
+                return false; //true;
             } if (pos > targetPosition && direction == -1) {
-                return true;
-            } else {
+                return false; //true;
+            }
+            else {
                 // false stops action rerun
-                slideMotor.setPower(0);
+                if (targetPosition == 0) {
+                    slideMotor.setPower(0);
+                }
                 return false;
             }
 

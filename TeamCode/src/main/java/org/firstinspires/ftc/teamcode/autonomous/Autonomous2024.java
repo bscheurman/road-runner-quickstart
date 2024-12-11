@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import androidx.annotation.NonNull;
 
@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.actions.Claw;
 import org.firstinspires.ftc.teamcode.actions.Harm;
 import org.firstinspires.ftc.teamcode.actions.Slide;
@@ -57,30 +58,44 @@ public final class Autonomous2024 extends LinearOpMode {
 
             waitForStart();
 
-            Actions.runBlocking(
-                    new ParallelAction(
 
-                            slide1.slideToPos(800),
-                            slide2.slideToPos(800),
-                            harm.slideToPos(200),
-                            wrist.wristUp()));
 
             Actions.runBlocking(
                      new SequentialAction(
-
                                     drive.actionBuilder(beginPose)
                                             .setTangent(Math.toRadians(90))
-                                            .lineToYSplineHeading(-34, Math.toRadians(90))
+                                            .lineToYSplineHeading(-44, Math.toRadians(90))
 
                                             .build(),
                                     wrist.wristUp(),
                                      new SleepAction(0.5)));
 
             Actions.runBlocking(
+                    new ParallelAction(
+
+                            slide1.slideToPos(500),
+                            slide2.slideToPos(500),
+                            harm.slideToPos(200),
+                            wrist.wristUp()));
+            Actions.runBlocking(
+                new SequentialAction(
+                        new SleepAction(1.0),
+                    drive.actionBuilder(beginPose)
+                            .setTangent(Math.toRadians(90))
+                            .lineToYSplineHeading(-42, Math.toRadians(90))
+
+                            .build(),
+                    wrist.wristMoveToPos(0.82),
+                   claw.clawOpen()));
+
+            Actions.runBlocking(
                     new SequentialAction(
 
-                            claw.clawOpen(),
-                            new SleepAction(0.5),
+                            new SleepAction(2.5),
+                            drive.actionBuilder(beginPose)
+                                    .setTangent(Math.toRadians(90))
+                                    .lineToYSplineHeading(-42, Math.toRadians(90))
+                                    .build(),
                             claw.clawClose(),
                             wrist.wristBack()));
 

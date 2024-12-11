@@ -7,8 +7,6 @@ import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.Autonomous2024;
-
 public class Claw {
     private Servo claw;
 
